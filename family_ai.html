@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080e20">
+<title>Family AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#080e20;color:#fff;min-height:100vh}
+header{padding:24px 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:bold;background:linear-gradient(90deg,#4ca5ff,#a66bff);color:transparent;background-clip:text}
+.screen{display:none;padding:20px;max-width:600px;margin:auto}.screen.active{display:block}
+h1{font-size:29px;margin-bottom:12px}.subtitle{color:#9baac8;margin-bottom:25px;line-height:1.5}
+.card{background:linear-gradient(145deg,#172747,#111a32);border:1px solid #263b62;border-radius:20px;padding:22px;margin-bottom:16px;cursor:pointer}
+.card h2{margin-bottom:9px}.card p{color:#aab8d2;font-size:14px}.emoji{font-size:35px;margin-bottom:15px}
+button{border:0;padding:14px 18px;border-radius:12px;color:white;background:linear-gradient(100deg,#287bff,#8954ed);font-size:15px;font-weight:bold;cursor:pointer}
+button.secondary{background:#202e4c;border:1px solid #35476b}button.danger{background:#9d3152}
+input,select{width:100%;padding:15px;margin:10px 0;border:1px solid #34486d;border-radius:12px;background:#111c34;color:white;font-size:15px}
+input::placeholder{color:#8392ad}label{color:#c6d4ee;font-size:14px;display:block}
+.back{margin-bottom:22px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.relation{background:#172747;border:1px solid #31466e;padding:19px 8px;border-radius:15px;text-align:center;cursor:pointer}
+.relation span{display:block;font-size:24px;margin-bottom:9px}
+.profile{padding:22px;background:linear-gradient(130deg,#1c3763,#302052);border-radius:20px;margin-bottom:20px}
+.profile-pic{width:75px;height:75px;border-radius:50%;background:#344b76;display:flex;justify-content:center;align-items:center;font-size:30px;margin-bottom:15px;overflow:hidden}
+.profile-pic img{width:100%;height:100%;object-fit:cover}
+.result{background:#15233e;border:1px solid #2b4067;padding:16px;border-radius:14px;margin:10px 0}
+.result small{color:#9caecc;display:block;margin-top:5px}
+.chat{background:#14233f;padding:16px;border-radius:15px;margin:15px 0;line-height:1.5}
+.hint{color:#899bb9;font-size:12px;margin-top:8px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.actions button{flex:1}
+#suggestions{background:#15233e;border-radius:10px;overflow:hidden}
+.suggestion{padding:12px;border-bottom:1px solid #34476b;cursor:pointer}
+#photoPreview{max-width:100%;max-height:220px;border-radius:15px;margin-top:15px;display:none}
+footer{text-align:center;color:#657895;padding:30px;font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="logo">✦ Family AI</div><div>✧</div></header>
+
+<section id="home" class="screen active">
+<h1>Your family. Connected.</h1><p class="subtitle">Discover your family relationships with your personal AI assistant.</p>
+<div class="card" onclick="showScreen('add')"><div class="emoji">🤖</div><h2>Add a Relation</h2><p>Talk to your AI assistant and add a family member.</p></div>
+<div class="card" onclick="showScreen('recognise')"><div class="emoji">🔍</div><h2>Recognise a Person</h2><p>Find someone using their photo or full name.</p></div>
+<div class="card" onclick="showScreen('all')"><div class="emoji">👨‍👩‍👧‍👦</div><h2>All Family Members</h2><p>View your saved family members.</p></div>
+</section>
+
+<section id="recognise" class="screen">
+<button class="secondary back" onclick="showScreen('home')">← Back</button>
+<h1>Find a person</h1><p class="subtitle">Choose how you want to find your relative.</p>
+<div class="card"><h2>📷 Take a photo</h2><input type="file" accept="image/*" capture="user" onchange="previewPhoto(event)"><p class="hint">Camera support depends on your iPhone browser.</p></div>
+<div class="card"><h2>🖼️ Upload from Photos</h2><input type="file" accept="image/*" onchange="previewPhoto(event)"><img id="photoPreview"><p class="hint">Photo selection works; face recognition will be added in a later phase.</p></div>
+<div class="card"><h2>✍️ Enter full name</h2><input id="searchName" placeholder="Name Fathername Surname" oninput="suggestNames()"><div id="suggestions"></div><button onclick="searchPerson()">Find Person</button></div>
+</section>
+
+<section id="add" class="screen">
+<button class="secondary back" onclick="showScreen('home')">← Back</button>
+<h1>Let's add someone!</h1><p class="subtitle">Your Family AI assistant will help connect them to your family.</p>
+<div class="chat">🤖 Hello! Let's add a new family member. First, tell me their full name.</div>
+<label>Full name</label><input id="newName" placeholder="First name Fathername Surname">
+<label>Family branch</label><select id="branch"><option value="Paternal">Paternal</option><option value="Maternal">Maternal</option><option value="Other">Other</option></select>
+<div class="chat">🤖 How is this person related to someone already in your family?</div>
+<label>Choose an existing family member</label><select id="connectedPerson"></select>
+<label>Relationship to that person</label><select id="relationship">
+<option>Father</option><option>Mother</option><option>Son</option><option>Daughter</option><option>Brother</option><option>Sister</option><option>Badepapa</option><option>Bua</option><option>Uncle</option><option>Bhuadosa</option><option>Cousin</option><option>Other</option></select>
+<label>Additional details (optional)</label><input id="extra" placeholder="Anything else about this person?">
+<button onclick="addPerson()">Save Family Member</button>
+</section>
+
+<section id="profile" class="screen">
+<button class="secondary back" onclick="showScreen('recognise')">← Back</button>
+<div class="profile"><div class="profile-pic" id="profilePic">👤</div><h1 id="profileName">Person</h1><p id="profileBranch"></p></div>
+<h2>Explore relationships</h2>
+<div class="grid">
+<div class="relation" onclick="showRelations('Sibling')"><span>👫</span>Siblings</div>
+<div class="relation" onclick="showRelations('Cousin')"><span>👨‍👩‍👧</span>Cousins</div>
+<div class="relation" onclick="showRelations('Father')"><span>👨</span>Father</div>
+<div class="relation" onclick="showRelations('Mother')"><span>👩</span>Mother</div>
+<div class="relation" onclick="showRelations('Bua')"><span>👩‍👧</span>Bua</div>
+<div class="relation" onclick="showRelations('Bhuadosa')"><span>👨‍👩</span>Bhuadosa</div>
+<div class="relation" onclick="showRelations('Related to Me')"><span>❤️</span>Related to Me</div>
+</div>
+<input id="relationSearch" placeholder="How is this person related to..."><button onclick="comparePeople()">Find Relationship</button>
+<div class="actions"><button class="danger" onclick="endSession()">End Person</button></div>
+</section>
+
+<section id="results" class="screen">
+<button class="secondary back" onclick="showScreen('profile')">← Back</button>
+<h1 id="resultTitle">Results</h1><p class="subtitle" id="resultSubtitle"></p><div id="resultList"></div>
+</section>
+
+<section id="all" class="screen">
+<button class="secondary back" onclick="showScreen('home')">← Back</button>
+<h1>Family Members</h1><input id="allSearch" placeholder="Search family members..." oninput="renderAll()"><div id="allList"></div>
+</section>
+<footer>Family AI • Your private family companion</footer>
+
+<script>
+let people=JSON.parse(localStorage.getItem("familyAI_people")||"[]");
+let currentPerson=null;
+function saveData(){localStorage.setItem("familyAI_people",JSON.stringify(people))}
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");if(id==="add")updatePersonDropdown();if(id==="all")renderAll()}
+function updatePersonDropdown(){let s=document.getElementById("connectedPerson");s.innerHTML="";if(!people.length)s.innerHTML='<option value="">No existing members yet</option>';people.forEach(p=>{let o=document.createElement("option");o.value=p.id;o.textContent=p.name;s.appendChild(o)})}
+function addPerson(){
+let name=document.getElementById("newName").value.trim(),branch=document.getElementById("branch").value,connected=document.getElementById("connectedPerson").value,relation=document.getElementById("relationship").value,extra=document.getElementById("extra").value.trim();
+if(!name){alert("Please enter the person's full name.");return}
+if(people.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert("This name is already in your family list. Check before adding.");return}
+if(people.length&&!connected){alert("Please select an existing family member.");return}
+people.push({id:Date.now().toString(),name,branch,extra,links:connected?[{personId:connected,relation}]:[]});saveData();alert("Family member saved!");document.getElementById("newName").value="";document.getElementById("extra").value="";showScreen("home")
+}
+function suggestNames(){let q=document.getElementById("searchName").value.toLowerCase(),box=document.getElementById("suggestions");box.innerHTML="";if(!q)return;people.filter(p=>p.name.toLowerCase().includes(q)).slice(0,8).forEach(p=>{let d=document.createElement("div");d.className="suggestion";d.textContent=p.name;d.onclick=()=>{document.getElementById("searchName").value=p.name;box.innerHTML="";openProfile(p.id)};box.appendChild(d)})}
+function searchPerson(){let n=document.getElementById("searchName").value.trim().toLowerCase(),p=people.find(x=>x.name.toLowerCase()===n);if(!p){alert("Person not found. Try another spelling or add them first.");return}openProfile(p.id)}
+function openProfile(id){currentPerson=people.find(p=>p.id===id);if(!currentPerson)return;document.getElementById("profileName").textContent=currentPerson.name;document.getElementById("profileBranch").textContent=currentPerson.branch+" family branch";document.getElementById("profilePic").textContent="👤";showScreen("profile")}
+function showRelations(type){
+if(!currentPerson)return;let matches=[];
+currentPerson.links.forEach(l=>{let p=people.find(x=>x.id===l.personId);if(p&&matchesRelation(l.relation,type))matches.push(p)});
+people.forEach(p=>p.links.forEach(l=>{if(l.personId===currentPerson.id&&matchesRelation(reverseRelation(l.relation),type))matches.push(p)}));
+matches=[...new Map(matches.map(p=>[p.id,p])).values()];
+document.getElementById("resultTitle").textContent=type==="Sibling"?"Siblings":type==="Cousin"?"Cousins":type;
+document.getElementById("resultSubtitle").textContent="People recorded with this relationship.";
+let list=document.getElementById("resultList");list.innerHTML="";
+if(!matches.length)list.textContent="No matching relationships have been recorded yet.";
+else matches.forEach(p=>{let d=document.createElement("div");d.className="result";let b=document.createElement("strong");b.textContent=p.name;let sm=document.createElement("small");sm.textContent=p.branch+" family branch";d.append(b,sm);list.appendChild(d)});
+showScreen("results")
+}
+function matchesRelation(saved,wanted){if(wanted==="Sibling")return["Brother","Sister"].includes(saved);return saved.toLowerCase()===wanted.toLowerCase()}
+function reverseRelation(r){return({Father:"Child",Mother:"Child",Son:"Parent",Daughter:"Parent",Brother:"Brother",Sister:"Sister"})[r]||r}
+function comparePeople(){
+let n=document.getElementById("relationSearch").value.trim().toLowerCase(),other=people.find(p=>p.name.toLowerCase()===n);
+if(!other){alert("That person isn't in your family database yet.");return}
+let l=currentPerson.links.find(x=>x.personId===other.id),rev=other.links.find(x=>x.personId===currentPerson.id),answer="No direct relationship has been recorded between these two people yet.";
+if(l)answer=other.name+" is recorded as "+l.relation+" of "+currentPerson.name+".";
+else if(rev)answer=currentPerson.name+" is recorded as "+rev.relation+" of "+other.name+".";
+document.getElementById("resultTitle").textContent="Relationship";document.getElementById("resultSubtitle").textContent=answer;document.getElementById("resultList").innerHTML="";showScreen("results")
+}
+function endSession(){currentPerson=null;document.getElementById("searchName").value="";document.getElementById("relationSearch").value="";showScreen("home")}
+function renderAll(){let q=(document.getElementById("allSearch")?.value||"").toLowerCase(),list=document.getElementById("allList");list.innerHTML="";people.filter(p=>p.name.toLowerCase().includes(q)).forEach(p=>{let d=document.createElement("div");d.className="result";let b=document.createElement("strong");b.textContent=p.name;let sm=document.createElement("small");sm.textContent=p.branch+" branch";d.append(b,sm);d.onclick=()=>openProfile(p.id);list.appendChild(d)});if(!list.children.length)list.textContent="No family members found."}
+function previewPhoto(e){let f=e.target.files[0];if(!f)return;let img=document.getElementById("photoPreview");img.src=URL.createObjectURL(f);img.style.display="block";alert("Photo selected! Face recognition will be added in a later phase.")}
+</script>
+</body>
+</html>
